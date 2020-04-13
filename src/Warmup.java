@@ -24,7 +24,7 @@ public class Warmup {
 //        System.out.println(backtrackingSearch(A,10,3,2,st));
         System.out.println(consistentBinSearch(B,14,st));
     }
-
+//123456789
     public static int consistentBinSearch(int[] arr, int x, Stack myStack) {
         // TODO: implement your code here
         int low=0;
