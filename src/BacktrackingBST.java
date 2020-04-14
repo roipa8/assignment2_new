@@ -162,7 +162,8 @@ public class BacktrackingBST implements Backtrack, ADTSet<BacktrackingBST.Node> 
         // TODO: implement your code here
         if (!stack.isEmpty()) {
             StackItem3 item = (StackItem3) stack.pop();
-            redoStack.push(item);
+            StackItem3 toPush=new StackItem3(item.node,item.father,item.rightSon,item.leftSon,item.command);
+            redoStack.push(toPush);
             Node father = null;
             if (item.father != null) {
                 father = search(item.father.key);
@@ -219,7 +220,8 @@ public class BacktrackingBST implements Backtrack, ADTSet<BacktrackingBST.Node> 
                     if (item.node.left != null & item.node.right != null) {
                         StackItem3 item2 = (StackItem3) stack.pop();
                         item2.setCommand("SecondDelete");
-                        redoStack.push(item2);
+                        StackItem3 toPush2=new StackItem3(item2.node,item2.father,item2.rightSon,item2.leftSon,item2.command);
+                        redoStack.push(toPush2);
                         if (item2.rightSon != null) {
                             item2.node.right = search(item2.rightSon.key);
                         }
@@ -242,12 +244,13 @@ public class BacktrackingBST implements Backtrack, ADTSet<BacktrackingBST.Node> 
         // TODO: implement your code here
         if (!redoStack.isEmpty()) {
             StackItem3 item = (StackItem3) redoStack.pop();
+            StackItem3 toPush=new StackItem3(copyNode(item.node),copyNode(item.father),copyNode(item.rightSon),copyNode(item.leftSon),item.command);
             Node father=null;
             if(item.father!=null){
                 father=search(item.father.key);
             }
             if (item.command.equals("Insert")) {
-                stack.push(item);
+                stack.push(toPush);
                 if (father == null) {
                     root = item.node;
                 } else {
@@ -261,7 +264,7 @@ public class BacktrackingBST implements Backtrack, ADTSet<BacktrackingBST.Node> 
                 }
             } else {
                 if (item.command.equals("Delete")) {
-                    stack.push(item);
+                    stack.push(toPush);
                     if (item.father == null) {
                         root = null;
                     } else {
@@ -294,8 +297,7 @@ public class BacktrackingBST implements Backtrack, ADTSet<BacktrackingBST.Node> 
                 } else {
                     if (item.command.equals("SecondDelete")) {
                         StackItem3 item2 = (StackItem3) redoStack.pop();
-                        item.setCommand("Delete");
-                        StackItem3 toPush=new StackItem3(copyNode(item.node),copyNode(item.father),copyNode(item.rightSon),copyNode(item.leftSon),item.command);
+                        toPush.setCommand("Delete");
                         stack.push(toPush);
                         StackItem3 toPush2=new StackItem3(copyNode(item2.node),copyNode(item2.father),copyNode(item2.rightSon),copyNode(item2.leftSon),item2.command);
                         stack.push(toPush2);
