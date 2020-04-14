@@ -42,9 +42,6 @@ public class BacktrackingBST implements Backtrack, ADTSet<BacktrackingBST.Node> 
         }
         Node y = null;
         Node x = root;
-        while (!redoStack.isEmpty()) {
-            redoStack.pop();
-        }
         while (x != null) {
             y = x;
             if (z.key < x.key) {
@@ -102,59 +99,10 @@ public class BacktrackingBST implements Backtrack, ADTSet<BacktrackingBST.Node> 
         }
         if (y != x) {
             x.key = y.key;
+            y.parent = x.parent;
+            y.left = x.left;
+            y.right = x.right;
         }
-        y.parent = x.parent;
-        y.left = x.left;
-        y.right = x.right;
-//        if(x.left==null&x.right==null){
-//            if(x.parent==null){
-//                root=null;
-//            }
-//            else{
-//                if(x==x.parent.left){
-//                    x.parent.left=null;
-//                }
-//                else{
-//                    x.parent.right=null;
-//                }
-//            }
-//        }
-//        else{
-//            if (x.left == null | x.right == null) {
-//                if(x.right==null){
-//                    if(x.parent==null){
-//                        root=x.left;
-//                    }
-//                    else{
-//                        if(x==x.parent.left){
-//                            x.parent.left=x.left;
-//                        }
-//                        else{
-//                            x.parent.right=x.left;
-//                        }
-//                    }
-//                }
-//                else{
-//                    if(x.parent==null){
-//                        root=x.right;
-//                    }
-//                    else{
-//                        if(x==x.parent.left){
-//                            x.parent.left=x.right;
-//                        }
-//                        else{
-//                            x.parent.right=x.right;
-//                        }
-//                    }
-//                }
-//            }
-//            else{
-//                y=successor(x);
-//                if(x.parent==null){
-//                    root=y;
-//                }
-//            }
-//        }
     }
 
     public Node minimum() {
@@ -214,52 +162,73 @@ public class BacktrackingBST implements Backtrack, ADTSet<BacktrackingBST.Node> 
         // TODO: implement your code here
         if (!stack.isEmpty()) {
             StackItem3 item = (StackItem3) stack.pop();
+            redoStack.push(item);
+            Node father = null;
+            if (item.father != null) {
+                father = search(item.father.key);
+            }
             if (item.command.equals("Insert")) {
-                redoStack.push(item);
-                if (item.father == null) {
+                if (father == null) {
                     root = null;
                 } else {
-                    if (item.father.key > item.node.key) {
-                        search(item.father.key).left = null;
+                    if (father.key > item.node.key) {
+                        father.left = null;
                     } else {
-                        search(item.father.key).right = null;
+//                        search(item.father.key).right = null;
+                        father.right=null;
                     }
                 }
             } else {
                 if (item.command.equals("Delete")) {
-                    redoStack.push(item);
-                    if (item.leftSon != null) {
-                        item.node.left = search(item.leftSon.key);
-                    }
+                    Node rightSon = null;
+                    Node leftSon = null;
                     if (item.rightSon != null) {
-                        item.node.right = search(item.rightSon.key);
+                        rightSon = search(item.rightSon.key);
                     }
-                    if (item.father == null) {
+                    if (item.leftSon != null) {
+                        leftSon = search(item.leftSon.key);
+                    }
+
+                    if (father == null) {
                         root = item.node;
-                    } else {
-                        if (search(item.father.key).key > item.node.key) {
-                            search(item.father.key).left = item.node;
+                        if (leftSon != null) {
+                            root.left = leftSon;
+                            leftSon.parent = root;
+                        }
+                        if (rightSon != null) {
+                            root.right = rightSon;
+                            rightSon.parent = root;
+                        }
+                    }
+                    else {
+                        if (father.key > item.node.key) {
+                            father.left=item.node;
                         } else {
-                            search(item.father.key).right = item.node;
+                            father.right=item.node;
+                        }
+                        item.node.parent=father;
+                        if(leftSon!=null){
+                            item.node.left=leftSon;
+                            leftSon.parent=item.node;
+                        }
+                        if(rightSon!=null){
+                            item.node.right=rightSon;
+                            rightSon.parent=item.node;
                         }
                     }
                     if (item.node.left != null & item.node.right != null) {
                         StackItem3 item2 = (StackItem3) stack.pop();
                         item2.setCommand("SecondDelete");
                         redoStack.push(item2);
-                        if (item2.leftSon != null) {
-                            item2.node.left = search(item2.leftSon.key);
-                        }
                         if (item2.rightSon != null) {
                             item2.node.right = search(item2.rightSon.key);
                         }
-                        if (item2.father != null) {
-                            if (search(item2.father.key).key > item2.node.key) {
-                                search(item2.father.key).left = item2.node;
-                            } else {
-                                search(item2.father.key).right = item2.node;
-                            }
+                        if (item2.father.key > item2.node.key) {
+                            search(item2.father.key).left = item2.node;
+                        } else {
+                            search(item2.father.key).right = item2.node;
                         }
+                        item2.node.parent = search(item2.father.key);
                     }
                 }
             }
@@ -273,54 +242,77 @@ public class BacktrackingBST implements Backtrack, ADTSet<BacktrackingBST.Node> 
         // TODO: implement your code here
         if (!redoStack.isEmpty()) {
             StackItem3 item = (StackItem3) redoStack.pop();
+            Node father=null;
+            if(item.father!=null){
+                father=search(item.father.key);
+            }
             if (item.command.equals("Insert")) {
-                if (item.father == null) {
+                stack.push(item);
+                if (father == null) {
                     root = item.node;
                 } else {
                     if (item.father.key > item.node.key) {
-                        search(item.father.key).left = item.node;
-                    } else {
-                        search(item.father.key).right = item.node;
+                        father.left = item.node;
                     }
+                    else {
+                        father.right = item.node;
+                    }
+                    item.node.parent=father;
                 }
             } else {
                 if (item.command.equals("Delete")) {
+                    stack.push(item);
                     if (item.father == null) {
                         root = null;
-                    }
-                    else {
+                    } else {
                         if (item.father.key > item.node.key) {
-                            search(item.node.key).parent.left = null;
-                        }
-                        else {
-                            search(item.node.key).parent.right = null;
+                            if(item.leftSon!=null){
+                                search(item.node.key).parent.left = search(item.leftSon.key);
+                            }
+                            else{
+                                if(item.rightSon!=null){
+                                    search(item.node.key).parent.left = search(item.rightSon.key);
+                                }
+                                else{
+                                    search(item.node.key).parent.left = null;
+                                }
+                            }
+                        } else {
+                            if(item.leftSon!=null){
+                                search(item.node.key).parent.right = search(item.leftSon.key);
+                            }
+                            else{
+                                if(item.rightSon!=null){
+                                    search(item.node.key).parent.right = search(item.rightSon.key);
+                                }
+                                else{
+                                    search(item.node.key).parent.right = null;
+                                }
+                            }
                         }
                     }
-                }
-                else{
-                    if(item.command.equals("SecondDelete")) {
+                } else {
+                    if (item.command.equals("SecondDelete")) {
                         StackItem3 item2 = (StackItem3) redoStack.pop();
-                        Node z;
-                        if (item2.leftSon != null) {
-                            z = search(item2.node.key).left;
+                        item.setCommand("Delete");
+                        StackItem3 toPush=new StackItem3(copyNode(item.node),copyNode(item.father),copyNode(item.rightSon),copyNode(item.leftSon),item.command);
+                        stack.push(toPush);
+                        StackItem3 toPush2=new StackItem3(copyNode(item2.node),copyNode(item2.father),copyNode(item2.rightSon),copyNode(item2.leftSon),item2.command);
+                        stack.push(toPush2);
+                        Node node = search(item.node.key);
+                        Node node2 = search(item2.node.key);
+                        if (node.parent.key > node.key) {
+                            node.parent.left = node.right;
                         } else {
-                            z = search(item2.node.key).right;
+                            node.parent.right = node.right;
                         }
-                        if (z != null) {
-                            z.parent = search(item2.node.key).parent;
+                        if(node.right!=null){
+                            node.right.parent = node.parent;
                         }
-                        if (z.parent == null) {
-                            root = z;
-                        } else {
-                            if (search(item2.node.key) == search(item2.node.key).parent.left) {
-                                search(item2.node.key).parent.left = z;
-                            } else {
-                                search(item2.node.key).parent.right = z;
-                            }
-                            if (item.node != item2.node) {
-                                search(item.node.key).key = search(item2.node.key).key;
-                            }
-                        }
+                        node2.key = node.key;
+                        node.parent = node2.parent;
+                        node.right = node2.right;
+                        node.left = node2.left;
                     }
                 }
             }
@@ -353,34 +345,32 @@ public class BacktrackingBST implements Backtrack, ADTSet<BacktrackingBST.Node> 
     }
 
     public void preOrder(Node x) {
-        while (x!=null){
-            if(x.left==null){
-                System.out.print(x.key+" ");
-                x=x.right;
-            }
-            else{
-                Node curr=x.left;
-                while (curr.right!=null&&curr.right!=x){
-                    curr=curr.right;
-                }
-                if(curr.right==x){
-                    curr.right=null;
-                    x=x.right;
-                }
-                else{
-                    System.out.print(x.key+" ");
-                    curr.right=x;
-                    x=x.left;
-                }
-            }
+//        while (x != null) {
+//            if (x.left == null) {
+//                System.out.print(x.key + " ");
+//                x = x.right;
+//            } else {
+//                Node curr = x.left;
+//                while (curr.right != null && curr.right != x) {
+//                    curr = curr.right;
+//                }
+//                if (curr.right == x) {
+//                    curr.right = null;
+//                    x = x.right;
+//                } else {
+//                    System.out.print(x.key + " ");
+//                    curr.right = x;
+//                    x = x.left;
+//                }
+//            }
+//        }
+        System.out.print(x.key + " ");
+        if (x.left != null) {
+            preOrder(x.left);
         }
-//        System.out.print(x.key + " ");
-//        if (x.left != null) {
-//            preOrder(x.left);
-//        }
-//        if (x.right != null) {
-//            preOrder(x.right);
-//        }
+        if (x.right != null) {
+            preOrder(x.right);
+        }
     }
 
     public static void main(String args[]) {
@@ -408,92 +398,103 @@ public class BacktrackingBST implements Backtrack, ADTSet<BacktrackingBST.Node> 
         tree.insert(h);
         tree.insert(i);
         tree.printPreOrder();
-        tree.delete(tree.search(i.key));
-        System.out.println();
+        tree.delete(i);
         System.out.println();
         tree.printPreOrder();
-        tree.delete(tree.search(b.key));
-        System.out.println();
+        tree.delete(b);
         System.out.println();
         tree.printPreOrder();
         tree.insert(new Node(1, null));
         System.out.println();
-        System.out.println();
         tree.printPreOrder();
         tree.delete(tree.search(h.key));
-        System.out.println();
         System.out.println();
         tree.printPreOrder();
         tree.delete(tree.search(e.key));
         System.out.println();
-        System.out.println();
         tree.printPreOrder();
         tree.delete(tree.search(f.key));
-        System.out.println();
         System.out.println();
         tree.printPreOrder();
         tree.delete(tree.search(d.key));
         System.out.println();
-        System.out.println();
         tree.printPreOrder();
         tree.delete(tree.search(c.key));
-        System.out.println();
         System.out.println();
         tree.printPreOrder();
         tree.delete(tree.search(n.key));
         System.out.println();
-        System.out.println();
         tree.printPreOrder();
         tree.insert(new Node(120, null));
-        System.out.println();
         System.out.println();
         tree.printPreOrder();
         tree.delete(tree.search(a.key));
         System.out.println();
-        System.out.println();
         tree.printPreOrder();
         System.out.println();
         tree.backtrack();
         System.out.println();
-        tree.printPreOrder();
-        System.out.println();
-        tree.backtrack();
+        System.out.println("Start backtracking");
         System.out.println();
         tree.printPreOrder();
         System.out.println();
         tree.backtrack();
-        System.out.println();
         tree.printPreOrder();
         System.out.println();
         tree.backtrack();
-        System.out.println();
         tree.printPreOrder();
         System.out.println();
         tree.backtrack();
-        System.out.println();
         tree.printPreOrder();
         System.out.println();
         tree.backtrack();
-        System.out.println();
         tree.printPreOrder();
         System.out.println();
         tree.backtrack();
-        System.out.println();
         tree.printPreOrder();
         System.out.println();
         tree.backtrack();
-        System.out.println();
         tree.printPreOrder();
         System.out.println();
         tree.backtrack();
-        System.out.println();
         tree.printPreOrder();
         System.out.println();
         tree.backtrack();
-        System.out.println();
         tree.printPreOrder();
         System.out.println();
         tree.backtrack();
+        tree.printPreOrder();
+        System.out.println();
+        tree.backtrack();
+        tree.printPreOrder();
+        tree.retrack();
+        System.out.println();
+        tree.printPreOrder();
+        tree.retrack();
+        System.out.println();
+        tree.printPreOrder();
+        tree.retrack();
+        System.out.println();
+        tree.printPreOrder();
+        tree.retrack();
+        System.out.println();
+        tree.printPreOrder();
+        tree.retrack();
+        System.out.println();
+        tree.printPreOrder();
+        tree.retrack();
+        System.out.println();
+        tree.printPreOrder();
+        tree.retrack();
+        System.out.println();
+        tree.printPreOrder();
+        tree.retrack();
+        System.out.println();
+        tree.printPreOrder();
+        tree.retrack();
+        System.out.println();
+        tree.printPreOrder();
+        tree.retrack();
         System.out.println();
         tree.printPreOrder();
     }
