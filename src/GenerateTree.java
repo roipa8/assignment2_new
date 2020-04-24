@@ -21,6 +21,8 @@ public class GenerateTree {
     
     private ArrayList<BacktrackingBST.Node> treeNodes    = new ArrayList<>();  
     private ArrayList<BacktrackingBST.Node> removedNodes = new ArrayList<>();
+    
+    private ArrayList<Integer>              removedIntegerKeys = new ArrayList<>();
     private ArrayList<String>               logInfo      = new ArrayList<>();
     
     private Stack                           backTrackingStack;
@@ -54,6 +56,7 @@ public class GenerateTree {
         
         this.backupBackTrackingStack = new Stack(); 
         this.retrackStack            = new Stack(); 
+        this.backupRetrackStack      = new Stack();
          
         this.runNumber         = runNumber;
         
@@ -134,8 +137,10 @@ public class GenerateTree {
     preOrder (Used for backtrack confirmation upon each state of the tree)
     */
     public String getPreorder(BacktrackingBST.Node node) 
-    { 
+    {  
         String Tmp = ""; 
+        try{
+        try{ 
         if(node != null)
         Tmp = Tmp + " "+node.getKey(); 
         
@@ -144,8 +149,47 @@ public class GenerateTree {
         if(node != null && node.right != null)
         Tmp = Tmp +" "+ getPreorder(node.right); 
         
+        }catch(Exception preOrderException){
+             logInfo.add("getPreOrder Exception! Scanned Till --> " + node + " Exception Stack -" + getStackForException(preOrderException));
+             addFinalStateInfoInTable();
+        }
+        }catch(StackOverflowError soError){
+            System.out.println("stackOverflow Error ! Scanned Till --> " + node + " Left Child --> " + node.left + " Right Child --> " + node.right +"  Exception.");
+            printNodesThatCauseStackOverflow(); 
+            System.exit(0);
+        }
         return Tmp;
     } 
+   public void printNodesThatCauseStackOverflow()
+    {
+       String               tableInfo = "";
+       BacktrackingBST.Node tempNode; 
+       BacktrackingBST.Node parent;
+       System.out.println("Tree Info  \r\n");
+        for(int i = 0 ; i < treeNodes.size(); i++)
+        {
+            tempNode = treeNodes.get(i);
+            parent   = getParentFieldByReflection(tempNode);
+            
+            if(tempNode != null)
+            tableInfo=tempNode.getKey() + "|";
+            if(parent != null) tableInfo+= "Parent - "    + parent.getKey();
+            else
+            tableInfo+= " Parent: Null";
+            
+            if(tempNode.left != null) tableInfo+= " Left - "+tempNode.left.getKey();
+            else
+            tableInfo+= " Left: Null";
+            
+             if(tempNode.right != null) tableInfo+=" Right - "+tempNode.right.getKey();
+            else
+            tableInfo+= " Right: Null";
+             
+            System.out.println(tableInfo); 
+        }  
+       System.out.println("----------------------------------------"); 
+    }
+     
     /*
     generatesTree - method to generate a fresh tree
     */
@@ -232,6 +276,7 @@ public class GenerateTree {
         }  
         
        afterRetrackOrder = getPreorder(tree.root);
+       logInfo.add("\r\nPreOrder After Retrack ---> " + afterRetrackOrder);
        isRetrackValid = beforeBackTrackOrder.equals(afterRetrackOrder); 
        System.out.println("Before Order :"  + beforeBackTrackOrder + " "+ afterRetrackOrder);
        logInfo.add("\r\nAfter Retracking " + numberDeleteActionsDone+" Actions"); 
@@ -250,6 +295,8 @@ public class GenerateTree {
         System.out.println("Number operations To Delete : " + randNumDeleteOperations);
         numberDeleteActionsDone               = 0;
        
+        String originalTreeOrder       = getPreorder(backtrackTree.getRoot());  
+        logInfo.add("\r\nPreOrder OriginalTree : ---> "  + originalTreeOrder);
         logInfo.add("------------------------\r\nGenerated Before Delete\r\n------------------------\n"); 
         saveTreeStateToLogFile();
           
@@ -260,10 +307,11 @@ public class GenerateTree {
             Collections.shuffle(treeNodes) ;  //shuffle our nodes and get a random one
             nodeToDelete = treeNodes.get(0);  
             
-            if(!removedNodes.contains(nodeToDelete)){ //Sanity check
+            if(!removedNodes.contains(nodeToDelete) && !removedIntegerKeys.contains(nodeToDelete.getKey())){ //Sanity check
            
             tree.delete     (nodeToDelete);
             removedNodes.add(nodeToDelete);
+            removedIntegerKeys.add(nodeToDelete.getKey());//Used for those who chose the "key" approach instead of the pointer one
             logInfo .add("tree.delete(node"+nodeToDelete.getKey()+");");
             numberDeleteActionsDone++; 
             }
@@ -272,7 +320,7 @@ public class GenerateTree {
         logInfo.add("------------------------\r\nGenerated Tree After Delete\r\n------------------------\r\n");  
         saveTreeStateToLogFile(); 
         beforeBackTrackOrder     = getPreorder(tree.getRoot());
-        
+        logInfo.add("\r\nPreOrder Before Back Track : ---> "  + beforeBackTrackOrder);
           
         for(int i = 0 ; i < numberDeleteActionsDone; i++)
         logInfo.add("tree.backtrack();");    
@@ -280,9 +328,8 @@ public class GenerateTree {
         for(int i = 0 ; i < numberDeleteActionsDone; i++)
            tree.backtrack();
          
-        String afterBackTrackOrder     = getPreorder(tree.getRoot()         );
-        String originalTreeOrder       = getPreorder(backtrackTree.getRoot()); 
-        
+        String afterBackTrackOrder     = getPreorder(tree.getRoot()         ); 
+        logInfo.add("\r\nPreOrder after Back Track : ---> "  + afterBackTrackOrder); 
         isValidBackTrack = originalTreeOrder.equals(afterBackTrackOrder);
         logInfo.add("------------------------\r\nAfter BackTracking Action\r\n------------------------"); 
         

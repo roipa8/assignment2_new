@@ -12,13 +12,14 @@ public class BacktrackingBSTTester {
         testBST.start();
     }
 
+
     /**
      * You can change the method call inside to whatever printing method you want.
      * The method treeFormPrint() is a method I wrote and posted on facebook.
      */
-//    private void printTree() {
-//        bst.treeFormPrint();
-//    }
+    private void printTree() {
+        bst.treeFormPrint();
+    }
 
     private Random rand = new Random();
     private Scanner reader = new Scanner(System.in);
@@ -127,9 +128,9 @@ public class BacktrackingBSTTester {
         printTree();
     }
 
-    private void printTree() {
-        //
-    }
+//    private void printTree() {
+
+//    }
 
     private BacktrackingBST.Node inputForDelete() {
         System.out.print("Enter value to delete: ");

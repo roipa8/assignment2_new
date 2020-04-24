@@ -97,21 +97,4 @@ public class BTreePrinter {
         return true;
     }
 
-    public static void main(String[] args){
-        Stack s1=new Stack();
-        Stack s2=new Stack();
-        BacktrackingBST tree = new BacktrackingBST(s1, s2);
-        tree.insert(new BacktrackingBST.Node(100,null));
-        tree.insert(new BacktrackingBST.Node(90,null));
-        tree.insert(new BacktrackingBST.Node(50,null));
-        tree.insert(new BacktrackingBST.Node(96,null));
-        tree.insert(new BacktrackingBST.Node(93,null));
-        tree.insert(new BacktrackingBST.Node(95,null));
-        tree.insert(new BacktrackingBST.Node(94,null));
-        tree.insert(new BacktrackingBST.Node(200,null));
-        tree.insert(new BacktrackingBST.Node(180,null));
-        tree.insert(new BacktrackingBST.Node(300,null));
-        BTreePrinter.printNode(tree.root);
-    }
-
 }

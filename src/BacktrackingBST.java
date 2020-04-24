@@ -37,9 +37,7 @@ public class BacktrackingBST implements Backtrack, ADTSet<BacktrackingBST.Node> 
 
     public void insert(BacktrackingBST.Node z) {
         // TODO: implement your code here
-        while (!redoStack.isEmpty()) {
-            redoStack.pop();
-        }
+        redoStack.clear();
         Node y = null;
         Node x = root;
         while (x != null) {
@@ -60,26 +58,24 @@ public class BacktrackingBST implements Backtrack, ADTSet<BacktrackingBST.Node> 
                 y.right = z;
             }
         }
-        StackItem3 item = new StackItem3(copyNode(z), copyNode(z.parent), copyNode(z.right), copyNode(z.left), "Insert");
+        StackItem3 item = new StackItem3(z, z.key, "Insert");
         stack.push(item);
     }
 
     public void delete(Node x) {
         // TODO: implement your code here
-        while (!redoStack.isEmpty()) {
-            redoStack.pop();
-        }
+        redoStack.clear();
         Node y;
         Node z;
+        StackItem3 item1 = new StackItem3(x, x.key, "Delete");
+        stack.push(item1);
         if (x.left == null | x.right == null) {
             y = x;
         } else {
             y = successor(x);
-            StackItem3 item2 = new StackItem3(copyNode(y), copyNode(y.parent), copyNode(y.right), copyNode(y.left), "Delete");
+            StackItem3 item2 = new StackItem3(y, y.key, "SecondDelete");
             stack.push(item2);
         }
-        StackItem3 item1 = new StackItem3(copyNode(x), copyNode(x.parent), copyNode(x.right), copyNode(x.left), "Delete");
-        stack.push(item1);
         if (y.left != null) {
             z = y.left;
         } else {
@@ -99,9 +95,9 @@ public class BacktrackingBST implements Backtrack, ADTSet<BacktrackingBST.Node> 
         }
         if (y != x) {
             x.key = y.key;
-            y.parent = x.parent;
-            y.left = x.left;
-            y.right = x.right;
+//            y.parent = x.parent;
+//            y.left = x.left;
+//            y.right = x.right;
         }
     }
 
@@ -162,79 +158,68 @@ public class BacktrackingBST implements Backtrack, ADTSet<BacktrackingBST.Node> 
         // TODO: implement your code here
         if (!stack.isEmpty()) {
             StackItem3 item = (StackItem3) stack.pop();
-            StackItem3 toPush=new StackItem3(item.node,item.father,item.rightSon,item.leftSon,item.command);
-            redoStack.push(toPush);
-            Node father = null;
-            if (item.father != null) {
-                father = search(item.father.key);
-            }
             if (item.command.equals("Insert")) {
-                if (father == null) {
+                redoStack.push(item);
+                if (item.node.parent == null) {
                     root = null;
                 } else {
-                    if (father.key > item.node.key) {
-                        father.left = null;
+                    if (item.node.parent.key > item.node.key) {
+                        item.node.parent.left = null;
                     } else {
-//                        search(item.father.key).right = null;
-                        father.right=null;
+                        item.node.parent.right = null;
                     }
                 }
             } else {
                 if (item.command.equals("Delete")) {
-                    Node rightSon = null;
-                    Node leftSon = null;
-                    if (item.rightSon != null) {
-                        rightSon = search(item.rightSon.key);
-                    }
-                    if (item.leftSon != null) {
-                        leftSon = search(item.leftSon.key);
-                    }
-
-                    if (father == null) {
+                    redoStack.push(item);
+                    if (item.node.parent == null) {
                         root = item.node;
-                        if (leftSon != null) {
-                            root.left = leftSon;
-                            leftSon.parent = root;
+                        if (item.node.left != null) {
+                            root.left = item.node.left;
+                            root.left.parent = root;
+                        } else {
+                            if (item.node.right != null) {
+                                root.right = item.node.right;
+                                root.right.parent = root;
+                            }
                         }
-                        if (rightSon != null) {
-                            root.right = rightSon;
-                            rightSon.parent = root;
+                    } else {
+                        if (item.node.key > item.node.parent.key) {
+                            item.node.parent.right = item.node;
+                        } else {
+                            item.node.parent.left = item.node;
+                        }
+                        if (item.node.left != null) {
+                            item.node.left.parent = item.node;
+                        }
+                        if (item.node.right != null) {
+                            item.node.right.parent = item.node;
                         }
                     }
-                    else {
-                        if (father.key > item.node.key) {
-                            father.left=item.node;
+                } else {
+                    if (item.command.equals("SecondDelete")) {
+                        StackItem3 item2= (StackItem3) stack.pop();
+                        redoStack.push(item2);
+                        redoStack.push(item);
+                        item2.node.key = item2.key;
+                        if (item2.node.right != null) {
+                            item2.node.right.parent = item2.node;
+                        }
+                        if (item2.node.left != null) {
+                            item2.node.left.parent = item2.node;
+                        }
+                        if (item.node.parent.key > item.node.key) {
+                            item.node.parent.left = item.node;
                         } else {
-                            father.right=item.node;
+                            item.node.parent.right = item.node;
                         }
-                        item.node.parent=father;
-                        if(leftSon!=null){
-                            item.node.left=leftSon;
-                            leftSon.parent=item.node;
+                        if (item.node.right != null) {
+                            item.node.right.parent = item.node;
                         }
-                        if(rightSon!=null){
-                            item.node.right=rightSon;
-                            rightSon.parent=item.node;
-                        }
-                    }
-                    if (item.node.left != null & item.node.right != null) {
-                        StackItem3 item2 = (StackItem3) stack.pop();
-                        item2.setCommand("SecondDelete");
-                        StackItem3 toPush2=new StackItem3(item2.node,item2.father,item2.rightSon,item2.leftSon,item2.command);
-                        redoStack.push(toPush2);
-                        if (item2.rightSon != null) {
-                            item2.node.right = search(item2.rightSon.key);
-                        }
-                        if (item2.father.key > item2.node.key) {
-                            search(item2.father.key).left = item2.node;
-                        } else {
-                            search(item2.father.key).right = item2.node;
-                        }
-                        item2.node.parent = search(item2.father.key);
                     }
                 }
             }
-//            System.out.println("backtracking performed");
+            System.out.println("backtracking performed");
         }
     }
 
@@ -244,77 +229,72 @@ public class BacktrackingBST implements Backtrack, ADTSet<BacktrackingBST.Node> 
         // TODO: implement your code here
         if (!redoStack.isEmpty()) {
             StackItem3 item = (StackItem3) redoStack.pop();
-            StackItem3 toPush=new StackItem3(copyNode(item.node),copyNode(item.father),copyNode(item.rightSon),copyNode(item.leftSon),item.command);
-            Node father=null;
-            if(item.father!=null){
-                father=search(item.father.key);
-            }
             if (item.command.equals("Insert")) {
-                stack.push(toPush);
-                if (father == null) {
+                stack.push(item);
+                if (item.node.parent == null) {
                     root = item.node;
                 } else {
-                    if (item.father.key > item.node.key) {
-                        father.left = item.node;
+                    if (item.node.parent.key > item.node.key) {
+                        item.node.parent.left = item.node;
+                    } else {
+                        item.node.parent.right = item.node;
                     }
-                    else {
-                        father.right = item.node;
-                    }
-                    item.node.parent=father;
                 }
             } else {
                 if (item.command.equals("Delete")) {
-                    stack.push(toPush);
-                    if (item.father == null) {
-                        root = null;
+                    stack.push(item);
+                    if (item.node.parent == null) {
+                        if(item.node.left!=null){
+                            root=item.node.left;
+                        }
+                        else{
+                            root=item.node.right;
+                        }
+                        root.parent=null;
                     } else {
-                        if (item.father.key > item.node.key) {
-                            if(item.leftSon!=null){
-                                search(item.node.key).parent.left = search(item.leftSon.key);
-                            }
-                            else{
-                                if(item.rightSon!=null){
-                                    search(item.node.key).parent.left = search(item.rightSon.key);
+                        if (item.node.parent.key > item.node.key) {
+                            if (item.node.left != null) {
+                                item.node.parent.left = item.node.left;
+                                item.node.left.parent=item.node.parent;
+                            } else {
+                                if (item.node.right != null) {
+                                    item.node.parent.left = item.node.right;
+                                    item.node.right.parent=item.node.parent;
+                                } else {
+                                    item.node.parent.left = null;
                                 }
-                                else{
-                                    search(item.node.key).parent.left = null;
-                                }
                             }
-                        } else {
-                            if(item.leftSon!=null){
-                                search(item.node.key).parent.right = search(item.leftSon.key);
-                            }
-                            else{
-                                if(item.rightSon!=null){
-                                    search(item.node.key).parent.right = search(item.rightSon.key);
-                                }
-                                else{
-                                    search(item.node.key).parent.right = null;
+                        }
+                        else{
+                            if (item.node.left != null) {
+                                item.node.parent.right = item.node.left;
+                                item.node.left.parent=item.node.parent;
+                            } else {
+                                if (item.node.right != null) {
+                                    item.node.parent.right = item.node.right;
+                                    item.node.right.parent=item.node.parent;
+                                } else {
+                                    item.node.parent.right = null;
                                 }
                             }
                         }
                     }
-                } else {
-                    if (item.command.equals("SecondDelete")) {
-                        StackItem3 item2 = (StackItem3) redoStack.pop();
-                        toPush.setCommand("Delete");
-                        stack.push(toPush);
-                        StackItem3 toPush2=new StackItem3(copyNode(item2.node),copyNode(item2.father),copyNode(item2.rightSon),copyNode(item2.leftSon),item2.command);
-                        stack.push(toPush2);
-                        Node node = search(item.node.key);
-                        Node node2 = search(item2.node.key);
-                        if (node.parent.key > node.key) {
-                            node.parent.left = node.right;
-                        } else {
-                            node.parent.right = node.right;
+                }
+                else{
+                    if(item.command.equals("SecondDelete")){
+                        StackItem3 item2=(StackItem3)redoStack.pop();
+                        stack.push(item2);
+                        stack.push(item);
+                        if(item.node.parent.key>item.node.key){
+                            item.node.parent.left=item.node.right;
                         }
-                        if(node.right!=null){
-                            node.right.parent = node.parent;
+                        else{
+                            item.node.parent.right=item.node.right;
                         }
-                        node2.key = node.key;
-                        node.parent = node2.parent;
-                        node.right = node2.right;
-                        node.left = node2.left;
+                        if(item.node.right!=null){
+                            item.node.right.parent=item.node.parent;
+                        }
+                        item2.node.key=item.key;
                     }
                 }
             }
@@ -323,49 +303,12 @@ public class BacktrackingBST implements Backtrack, ADTSet<BacktrackingBST.Node> 
 
     public void printPreOrder() {
         // TODO: implement your code here
-        preOrder(root);
-//        stack.push(copyNode(root));
-//        boolean isFinish=false;
-//        if(root==null){
-//            isFinish=true;
-//        }
-//        while (!isFinish){
-//            Node curr=(Node)stack.pop();
-//            System.out.print(curr.key+" ");
-//            Node right=copyNode(search(curr.key).right);
-//            Node left=copyNode(search(curr.key).left);
-//            if(right!=null){
-//                stack.push(right);
-//            }
-//            if(left!=null){
-//                stack.push(left);
-//            }
-//            if(curr.key==maximum().key){
-//                isFinish=true;
-//            }
-//        }
+        if (root != null) {
+            preOrder(root);
+        }
     }
 
     public void preOrder(Node x) {
-//        while (x != null) {
-//            if (x.left == null) {
-//                System.out.print(x.key + " ");
-//                x = x.right;
-//            } else {
-//                Node curr = x.left;
-//                while (curr.right != null && curr.right != x) {
-//                    curr = curr.right;
-//                }
-//                if (curr.right == x) {
-//                    curr.right = null;
-//                    x = x.right;
-//                } else {
-//                    System.out.print(x.key + " ");
-//                    curr.right = x;
-//                    x = x.left;
-//                }
-//            }
-//        }
         System.out.print(x.key + " ");
         if (x.left != null) {
             preOrder(x.left);
@@ -375,99 +318,79 @@ public class BacktrackingBST implements Backtrack, ADTSet<BacktrackingBST.Node> 
         }
     }
 
+    // TODO remove
+    public void treeFormPrint() {
+        if (root != null) treeFormPrint(root, "");
+        else System.out.println("Empty tree");
+    }
+
+    // TODO remove
+    private void treeFormPrint(Node node, String acc) {
+        String signSpace = acc + "            ";
+        if (node.right != null) {
+            treeFormPrint(node.right, acc + "               ");
+            if (node.right.parent == node)
+                System.out.println(signSpace + "/");
+            else System.out.println(signSpace + "$");
+        }
+        System.out.println(acc + "| key: " + node.key);
+        System.out.println(acc + "| par: " + node.parent);
+        if (node.left != null) {
+            if (node.left.parent == node)
+                System.out.println(signSpace + "\\");
+            else System.out.println(signSpace + "$");
+            treeFormPrint(node.left, acc + "               ");
+        }
+    }
+
     public static void main(String args[]) {
         Stack s1 = new Stack();
         Stack s2 = new Stack();
         BacktrackingBST tree = new BacktrackingBST(s1, s2);
-        Node a = new Node(100, null);
-        Node b = new Node(90, null);
-        Node c = new Node(50, null);
-        Node d = new Node(96, null);
-        Node e = new Node(93, null);
-        Node f = new Node(95, null);
-        Node n = new Node(94, null);
-        Node g = new Node(200, null);
-        Node h = new Node(180, null);
-        Node i = new Node(300, null);
-        tree.insert(a);
-        tree.insert(b);
-        tree.insert(c);
-        tree.insert(d);
-        tree.insert(e);
-        tree.insert(f);
-        tree.insert(n);
-        tree.insert(g);
-        tree.insert(h);
-        tree.insert(i);
+        Node node100 = new Node(100, null);
+        tree.insert(node100);
+        Node node90 = new Node(90, null);
+        tree.insert(node90);
+        Node node50 = new Node(50, null);
+        tree.insert(node50);
+        Node node96 = new Node(96, null);
+        tree.insert(node96);
+        Node node93 = new Node(93, null);
+        tree.insert(node93);
+        Node node95 = new Node(95, null);
+        tree.insert(node95);
+        Node node94 = new Node(94, null);
+        tree.insert(node94);
+        Node node200 = new Node(200, null);
+        tree.insert(node200);
+        Node node180 = new Node(180, null);
+        tree.insert(node180);
+        Node node300 = new Node(300, null);
+        tree.insert(node300);
         tree.printPreOrder();
-        tree.delete(i);
+        tree.delete(node100);
         System.out.println();
+//        System.out.println("delete 100");
         tree.printPreOrder();
-        tree.delete(b);
+        tree.delete(tree.search(180));
         System.out.println();
+//        System.out.println("delete 180");
         tree.printPreOrder();
-        tree.insert(new Node(1, null));
+        tree.insert(new Node(91,null));
         System.out.println();
+//        System.out.println("insert 91");
         tree.printPreOrder();
-        tree.delete(tree.search(h.key));
-        System.out.println();
-        tree.printPreOrder();
-        tree.delete(tree.search(e.key));
-        System.out.println();
-        tree.printPreOrder();
-        tree.delete(tree.search(f.key));
-        System.out.println();
-        tree.printPreOrder();
-        tree.delete(tree.search(d.key));
-        System.out.println();
-        tree.printPreOrder();
-        tree.delete(tree.search(c.key));
-        System.out.println();
-        tree.printPreOrder();
-        tree.delete(tree.search(n.key));
-        System.out.println();
-        tree.printPreOrder();
-        tree.insert(new Node(120, null));
-        System.out.println();
-        tree.printPreOrder();
-        tree.delete(tree.search(a.key));
-        System.out.println();
-        tree.printPreOrder();
-        System.out.println();
         tree.backtrack();
         System.out.println();
-        System.out.println("Start backtracking");
-        System.out.println();
+//        System.out.println("undo 91");
         tree.printPreOrder();
-        System.out.println();
         tree.backtrack();
+        System.out.println();
+//        System.out.println("undo 180");
         tree.printPreOrder();
-        System.out.println();
         tree.backtrack();
-        tree.printPreOrder();
         System.out.println();
-        tree.backtrack();
-        tree.printPreOrder();
-        System.out.println();
-        tree.backtrack();
-        tree.printPreOrder();
-        System.out.println();
-        tree.backtrack();
-        tree.printPreOrder();
-        System.out.println();
-        tree.backtrack();
-        tree.printPreOrder();
-        System.out.println();
-        tree.backtrack();
-        tree.printPreOrder();
-        System.out.println();
-        tree.backtrack();
-        tree.printPreOrder();
-        System.out.println();
-        tree.backtrack();
-        tree.printPreOrder();
-        System.out.println();
-        tree.backtrack();
+//        System.out.println("undo 100");
         tree.printPreOrder();
         tree.retrack();
         System.out.println();
@@ -478,25 +401,13 @@ public class BacktrackingBST implements Backtrack, ADTSet<BacktrackingBST.Node> 
         tree.retrack();
         System.out.println();
         tree.printPreOrder();
-        tree.retrack();
+        tree.backtrack();
         System.out.println();
         tree.printPreOrder();
-        tree.retrack();
+        tree.backtrack();
         System.out.println();
         tree.printPreOrder();
-        tree.retrack();
-        System.out.println();
-        tree.printPreOrder();
-        tree.retrack();
-        System.out.println();
-        tree.printPreOrder();
-        tree.retrack();
-        System.out.println();
-        tree.printPreOrder();
-        tree.retrack();
-        System.out.println();
-        tree.printPreOrder();
-        tree.retrack();
+        tree.backtrack();
         System.out.println();
         tree.printPreOrder();
     }
@@ -509,17 +420,13 @@ public class BacktrackingBST implements Backtrack, ADTSet<BacktrackingBST.Node> 
 
     public class StackItem3 {
         private Node node;
-        private Node father;
         private String command;
-        private Node rightSon;
-        private Node leftSon;
+        private int key;
 
-        private StackItem3(Node node, Node father, Node rightSon, Node leftSon, String command) {
+        private StackItem3(Node node, int key, String command) {
             this.node = node;
-            this.father = father;
             this.command = command;
-            this.rightSon = rightSon;
-            this.leftSon = leftSon;
+            this.key = key;
         }
 
         private void setCommand(String command) {

@@ -61,12 +61,12 @@ public class TreeGenerationTester {
         
         System.out.println("Input number of nodes to test with : (Minimum 2)");
         numNodes = inputScanner.nextInt();
-        
+
         if(numNodes >= 2){
-         
+
         System.out.println("Input number of tests :");
         numTests = inputScanner.nextInt();
-        
+
         System.out.println("Check retrack? type 1 to check, type 2 to skip");
         checkRetrack = (inputScanner.nextInt()==1);
         
@@ -78,6 +78,7 @@ public class TreeGenerationTester {
         treeGenerator .startTest(); 
         treeGenerators.add(treeGenerator);
         }
+
         
         /*
         Simply saves the correct cases/invalid ones
