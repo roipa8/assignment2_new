@@ -73,7 +73,7 @@ public class BacktrackingBST implements Backtrack, ADTSet<BacktrackingBST.Node> 
             y = x;
         } else {
             y = successor(x);
-            StackItem3 item2 = new StackItem3(y, y.key, "SecondDelete");
+            StackItem3 item2 = new StackItem3(y, y.key, "DeleteTwoSons");
             stack.push(item2);
         }
         if (y.left != null) {
@@ -197,7 +197,7 @@ public class BacktrackingBST implements Backtrack, ADTSet<BacktrackingBST.Node> 
                         }
                     }
                 } else {
-                    if (item.command.equals("SecondDelete")) {
+                    if (item.command.equals("DeleteTwoSons")) {
                         StackItem3 item2= (StackItem3) stack.pop();
                         redoStack.push(item2);
                         redoStack.push(item);
@@ -281,7 +281,7 @@ public class BacktrackingBST implements Backtrack, ADTSet<BacktrackingBST.Node> 
                     }
                 }
                 else{
-                    if(item.command.equals("SecondDelete")){
+                    if(item.command.equals("DeleteTwoSons")){
                         StackItem3 item2=(StackItem3)redoStack.pop();
                         stack.push(item2);
                         stack.push(item);

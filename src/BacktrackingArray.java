@@ -45,11 +45,17 @@ public class BacktrackingArray implements Array<Integer>, Backtrack {
         // TODO: implement your code here
         if(index<=currentSize){
             StackItem1 item = new StackItem1(index, arr[index], "Delete");
+            StackItem1 item2= new StackItem1(currentSize-1,arr[currentSize-1],"Delete");
             stack.push(item);
-            for (int i = index + 1; i <= currentSize; i = i + 1) {
-                arr[i - 1] = arr[i];
-            }
-            currentSize = currentSize - 1;
+            stack.push(item2);
+            arr[index]=arr[currentSize-1];
+            arr[currentSize-1]=0;
+            currentSize=currentSize-1;
+//            stack.push(item);
+//            for (int i = index + 1; i <= currentSize; i = i + 1) {
+//                arr[i - 1] = arr[i];
+//            }
+//            currentSize = currentSize - 1;
         }
     }
 
@@ -127,13 +133,17 @@ public class BacktrackingArray implements Array<Integer>, Backtrack {
         if(!stack.isEmpty()){
             StackItem1 item = (StackItem1) stack.pop();
             if (item.command.equals("Delete")) {
-                int index = item.index;
-                int value = item.value;
-                for (int i = currentSize; i>=index; i = i - 1) {
-                    arr[i] = arr[i - 1];
-                }
-                arr[index]=value;
-                currentSize = currentSize + 1;
+                StackItem1 item2 = (StackItem1) stack.pop();
+                arr[currentSize]=item.value;
+                arr[item2.index]=item2.value;
+                currentSize=currentSize+1;
+//                int index = item.index;
+//                int value = item.value;
+//                for (int i = currentSize; i>=index; i = i - 1) {
+//                    arr[i] = arr[i - 1];
+//                }
+//                arr[index]=value;
+//                currentSize = currentSize + 1;
             } else {
                 if (item.command.equals("Insert")) {
                     arr[currentSize-1] = 0;
